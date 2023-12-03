@@ -11,10 +11,10 @@ body {
 }
 
 .photo-card {
-  width: 300px; /* або інший бажаний розмір */
+  width: 300px;
   margin: 10px;
   box-sizing: border-box;
-  border: 1px solid #ddd; /* додайте стилізацію рамки за потреби */
+  border: 1px solid #ddd;
   border-radius: 8px;
 }
 
@@ -29,11 +29,39 @@ body {
   text-align: center;
 }
 
-.load-more {
-  display: none;
-  margin: 20px auto;
-  padding: 10px 20px;
-  font-size: 16px;
+// .load-more {
+//   display: none;
+//   margin: 20px auto;
+//   padding: 10px 20px;
+//   font-size: 16px;
+//   cursor: pointer;
+//   background-color: #4d4dff;
+// }
+.form-container {
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: lightskyblue;
+}
+.search-form {
+  padding: 0 auto;
+}
+.form-input {
+  height: 30px;
+  border: 1px solid #cecece;
+  background: #f6f6f6;
+  border-radius: 4px;
+}
+.submit-btn {
+  height: 34px;
+  border: 1px solid #cecece;
+  background: #4d4dff;
+  color: #cecece;
   cursor: pointer;
-  background-color: blue;
+  font-weight: 600;
+}
+.submit-btn:hover,
+.submit-btn:focus {
+  color: white;
 }
