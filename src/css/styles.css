@@ -29,14 +29,14 @@ body {
   text-align: center;
 }
 
-// .load-more {
-//   display: none;
-//   margin: 20px auto;
-//   padding: 10px 20px;
-//   font-size: 16px;
-//   cursor: pointer;
-//   background-color: #4d4dff;
-// }
+/* .load-more {
+   display: none;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+   cursor: pointer;
+  background-color: #4d4dff;
+ } */
 .form-container {
   height: 50px;
   display: flex;
