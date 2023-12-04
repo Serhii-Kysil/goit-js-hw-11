@@ -1,38 +1,57 @@
-import axios from 'axios';
+import { searchImages } from './API';
+import { showEndMessage, handleSearchResults } from './Gallery';
 import Notiflix from 'notiflix';
 
 const form = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
-let currentPage = 1;
+
+export let currentPage = 1;
+
 let loading = false;
 let currentSearchQuery = '';
+let canLoadMore = true;
+let totalResultsDisplayed = false;
 
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
   const searchQuery = event.target.elements.searchQuery.value;
 
-  if (searchQuery) {
-    try {
-      const response = await axios.get(
-        `https://pixabay.com/api/?key=41042806-40fd19d59ddc4212409431af3&q=${searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&page=${currentPage}&per_page=40`
-      );
+  if (searchQuery.trim() !== '') {
+    currentPage = 1;
 
-      const data = response.data;
-      handleSearchResults(data);
+    try {
+      const data = await searchImages(searchQuery, currentPage);
+      handleSearchResults(form, currentSearchQuery, gallery, data, createCard);
       showEndMessage(data.totalHits);
+
+      if (!totalResultsDisplayed) {
+        showTotalResults(data.totalHits);
+        totalResultsDisplayed = true;
+      }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error(error);
     }
 
-    return (currentSearchQuery = searchQuery);
+    currentSearchQuery = searchQuery;
+  } else {
+    Notiflix.Notify.failure('Please enter a non-empty search query.');
   }
 });
 
-// Визначення нескінченного завантаження під час прокручування
 window.addEventListener('scroll', async function () {
   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-  if (scrollTop + clientHeight >= scrollHeight - 100 && !loading) {
+
+  if (
+    scrollTop + clientHeight >= scrollHeight - 100 &&
+    !loading &&
+    canLoadMore
+  ) {
+    loading = true;
+
+    await new Promise(resolve => setTimeout(resolve, 200));
     await loadMore();
+
+    loading = false;
   }
 });
 
@@ -41,47 +60,23 @@ async function loadMore() {
     return;
   }
 
-  loading = true;
   currentPage++;
 
   try {
-    const response = await axios.get(
-      `https://pixabay.com/api/?key=41042806-40fd19d59ddc4212409431af3&q=${form.elements.searchQuery.value.trim()}&image_type=photo&orientation=horizontal&safesearch=true&page=${currentPage}&per_page=40`
+    const data = await searchImages(
+      form.elements.searchQuery.value.trim(),
+      currentPage
     );
-
-    const data = response.data;
-    handleSearchResults(data);
+    handleSearchResults(form, currentSearchQuery, gallery, data, createCard);
     showEndMessage(data.totalHits);
+
+    smoothScrollToNextGroup();
+
+    if (data.hits.length < 40) {
+      canLoadMore = false;
+    }
   } catch (error) {
     console.error('Error fetching more data:', error);
-  } finally {
-    loading = false;
-  }
-}
-
-function showEndMessage(totalHits) {
-  const visibleImages = currentPage * 40;
-
-  if (totalHits > 0 && visibleImages >= totalHits) {
-    Notiflix.Notify.info(
-      "We're sorry, but you've reached the end of search results."
-    );
-  }
-}
-
-function handleSearchResults(data) {
-  // Очищення галереї, лише якщо введений запит змінився
-  if (form.elements.searchQuery.value.trim() !== currentSearchQuery) {
-    gallery.innerHTML = '';
-  }
-
-  if (data.hits.length === 0) {
-    Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.'
-    );
-  } else {
-    const html = data.hits.map(createCard).join('');
-    gallery.innerHTML += html;
   }
 }
 
@@ -97,4 +92,19 @@ function createCard(image) {
       </div>
     </div>
   `;
+}
+
+function showTotalResults(totalHits) {
+  Notiflix.Notify.info(`Total results found: ${totalHits}`);
+}
+
+function smoothScrollToNextGroup() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
 }
