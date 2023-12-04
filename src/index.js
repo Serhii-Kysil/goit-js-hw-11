@@ -10,7 +10,7 @@ export let currentPage = 1;
 let loading = false;
 let currentSearchQuery = '';
 let canLoadMore = true;
-let totalResultsDisplayed = false;
+// let totalResultsDisplayed = false;
 
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
@@ -23,11 +23,7 @@ form.addEventListener('submit', async function (event) {
       const data = await searchImages(searchQuery, currentPage);
       handleSearchResults(form, currentSearchQuery, gallery, data, createCard);
       showEndMessage(data.totalHits);
-
-      if (!totalResultsDisplayed) {
-        showTotalResults(data.totalHits);
-        totalResultsDisplayed = true;
-      }
+      showTotalResults(data.totalHits);
     } catch (error) {
       console.error(error);
     }
