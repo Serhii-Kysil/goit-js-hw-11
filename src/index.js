@@ -48,7 +48,7 @@ window.addEventListener('scroll', async function () {
   ) {
     loading = true;
 
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 500));
     await loadMore();
 
     loading = false;
@@ -67,6 +67,9 @@ async function loadMore() {
       form.elements.searchQuery.value.trim(),
       currentPage
     );
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     handleSearchResults(form, currentSearchQuery, gallery, data, createCard);
     showEndMessage(data.totalHits);
 
