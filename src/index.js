@@ -12,8 +12,6 @@ let loading = false;
 let currentSearchQuery = '';
 let canLoadMore = true;
 
-const observer = new IntersectionObserver();
-
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
   const searchQuery = event.target.elements.searchQuery.value;
@@ -26,6 +24,11 @@ form.addEventListener('submit', async function (event) {
       handleSearchResults(form, currentSearchQuery, gallery, data, createCard);
       showEndMessage(data.totalHits);
       showTotalResults(data.totalHits);
+
+      // Check if totalHits is greater than 40 to enable Intersection Observer
+      if (data.totalHits > 40) {
+        setupIntersectionObserver();
+      }
     } catch (error) {
       console.error(error);
     }
@@ -33,23 +36,6 @@ form.addEventListener('submit', async function (event) {
     currentSearchQuery = searchQuery;
   } else {
     Notiflix.Notify.failure('Please enter a non-empty search query.');
-  }
-});
-
-window.addEventListener('scroll', async function () {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-
-  if (
-    scrollTop + clientHeight >= scrollHeight - 100 &&
-    !loading &&
-    canLoadMore
-  ) {
-    loading = true;
-
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await loadMore();
-
-    loading = false;
   }
 });
 
@@ -108,4 +94,28 @@ function smoothScrollToNextGroup() {
     top: cardHeight * 2,
     behavior: 'smooth',
   });
+}
+
+function setupIntersectionObserver() {
+  const observer = new IntersectionObserver(
+    async entries => {
+      const entry = entries[0];
+
+      if (entry.isIntersecting && !loading && canLoadMore) {
+        loading = true;
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await loadMore();
+
+        loading = false;
+      }
+    },
+    {
+      root: null,
+      rootMargin: '500px',
+      threshold: 0.99,
+    }
+  );
+
+  observer.observe(obsTarget);
 }
