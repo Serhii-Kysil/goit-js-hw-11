@@ -22,7 +22,7 @@ export function handleSearchResults(
     gallery.innerHTML = '';
   }
 
-  if (data.hits.length === 0) {
+  if (data.hits.length === 0 && currentPage === 1) {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
