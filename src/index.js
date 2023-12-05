@@ -4,13 +4,15 @@ import Notiflix from 'notiflix';
 
 const form = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
+const obsTarget = document.querySelector('.js-obs');
 
 export let currentPage = 1;
 
 let loading = false;
 let currentSearchQuery = '';
 let canLoadMore = true;
-// let totalResultsDisplayed = false;
+
+const observer = new IntersectionObserver();
 
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
