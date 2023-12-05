@@ -27,6 +27,7 @@ form.addEventListener('submit', async function (event) {
       showTotalResults(data.totalHits);
 
       if (data.totalHits > 40) {
+        canLoadMore = true;
         setupIntersectionObserver();
       }
     } catch (error) {
