@@ -8,6 +8,7 @@ const obsTarget = document.querySelector('.js-obs');
 
 export let currentPage = 1;
 
+let observer;
 let loading = false;
 let currentSearchQuery = '';
 let canLoadMore = true;
@@ -25,7 +26,6 @@ form.addEventListener('submit', async function (event) {
       showEndMessage(data.totalHits);
       showTotalResults(data.totalHits);
 
-      // Check if totalHits is greater than 40 to enable Intersection Observer
       if (data.totalHits > 40) {
         setupIntersectionObserver();
       }
@@ -38,6 +38,34 @@ form.addEventListener('submit', async function (event) {
     Notiflix.Notify.failure('Please enter a non-empty search query.');
   }
 });
+
+function setupIntersectionObserver() {
+  observer = new IntersectionObserver(
+    async entries => {
+      const entry = entries[0];
+
+      if (entry.isIntersecting && !loading && canLoadMore) {
+        loading = true;
+
+        await loadMore();
+
+        loading = false;
+
+        const totalPages = Math.ceil(entry.target.totalHits / 40);
+        if (currentPage === totalPages) {
+          observer.unobserve(obsTarget);
+        }
+      }
+    },
+    {
+      root: null,
+      rootMargin: '300px',
+      threshold: 0.99,
+    }
+  );
+
+  observer.observe(obsTarget);
+}
 
 async function loadMore() {
   if (form.elements.searchQuery.value.trim() === '') {
@@ -52,12 +80,14 @@ async function loadMore() {
       currentPage
     );
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+    //  await new Promise(resolve => setTimeout(resolve, 500));
 
     handleSearchResults(form, currentSearchQuery, gallery, data, createCard);
     showEndMessage(data.totalHits);
 
     smoothScrollToNextGroup();
+    const totalPages = Math.ceil(data.totalHits / 40);
+    console.log(totalPages);
 
     if (data.hits.length < 40) {
       canLoadMore = false;
@@ -65,20 +95,6 @@ async function loadMore() {
   } catch (error) {
     console.error('Error fetching more data:', error);
   }
-}
-
-function createCard(image) {
-  return `
-    <div class="photo-card">
-      <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
-      <div class="info">
-        <p class="info-item"><b>Likes:</b> ${image.likes}</p>
-        <p class="info-item"><b>Views:</b> ${image.views}</p>
-        <p class="info-item"><b>Comments:</b> ${image.comments}</p>
-        <p class="info-item"><b>Downloads:</b> ${image.downloads}</p>
-      </div>
-    </div>
-  `;
 }
 
 function showTotalResults(totalHits) {
@@ -96,26 +112,16 @@ function smoothScrollToNextGroup() {
   });
 }
 
-function setupIntersectionObserver() {
-  const observer = new IntersectionObserver(
-    async entries => {
-      const entry = entries[0];
-
-      if (entry.isIntersecting && !loading && canLoadMore) {
-        loading = true;
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await loadMore();
-
-        loading = false;
-      }
-    },
-    {
-      root: null,
-      rootMargin: '500px',
-      threshold: 0.99,
-    }
-  );
-
-  observer.observe(obsTarget);
+function createCard(image) {
+  return `
+    <div class="photo-card">
+      <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
+      <div class="info">
+        <p class="info-item"><b>Likes:</b> ${image.likes}</p>
+        <p class="info-item"><b>Views:</b> ${image.views}</p>
+        <p class="info-item"><b>Comments:</b> ${image.comments}</p>
+        <p class="info-item"><b>Downloads:</b> ${image.downloads}</p>
+      </div>
+    </div>
+  `;
 }
